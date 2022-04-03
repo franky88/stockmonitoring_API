@@ -1,9 +1,11 @@
 const asyncHandler = require("express-async-handler")
+const Stock = require("../models/stockModel")
 // @des         Get stocks
 // @route       GET /api/psestocks
 // @access      Private
 const getStocks = asyncHandler( async (req, res) => {
-    res.status(200).json({ message: "Get PSE stocks" })
+    const stocks = await Stock.find()
+    res.status(200).json(stocks)
 })
 
 // @des         Post stock
@@ -15,21 +17,40 @@ const postStock = asyncHandler( async  (req, res) => {
         res.status(400)
         throw new Error('Please add a text field')
     }
-    res.status(200).json({ message: "Post stock" })
+    const stock = await Stock.create({
+        text: req.body.text
+    })
+    res.status(200).json(stock)
 })
 
 // @des         Update stock
 // @route       PUT /api/psestocks/:id
 // @access      Private
 const updateStock = asyncHandler( async  (req, res) => {
-    res.status(200).json({ message: `Update stock ID ${req.params.id}` })
+    const stock = await Stock.findById(req.params.id)
+    if(!stock){
+        res.status(400)
+        throw new Error("Stock not found")
+    }
+
+    const updatedStock = await Stock.findByIdAndUpdate(req.params.id, req.body, {
+        new: true
+    })
+    res.status(200).json(updatedStock)
 })
 
 // @des         Delete stock
 // @route       DELETE /api/psestocks/:id
 // @access      Private
 const deleteStock = asyncHandler( async  (req, res) => {
-    res.status(200).json({ message: `Delete stock ID ${req.params.id}` })
+    const stock = await Stock.findById(req.params.id)
+    if(!stock){
+        res.status(400)
+        throw new Error("Stock not found")
+    }
+
+    await stock.remove()
+    res.status(200).json({ id: req.params.id })
 })
 
 module.exports = {
